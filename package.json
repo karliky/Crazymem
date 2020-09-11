@@ -1,0 +1,32 @@
+{
+  "name": "libmem",
+  "version": "1.0.0",
+  "description": "Node.js bindings for libmem",
+  "main": "src/lib.js",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "test": "npm run build && mocha -r ts-node/register test/lib.ts",
+    "build": "npx tsc src/lib.ts",
+    "post-install": "node-gyp build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/mocha": "^8.0.3",
+    "nan": "^2.14.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.1.0",
+    "@typescript-eslint/parser": "^4.1.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-react": "^7.20.6",
+    "mocha": "^8.1.3",
+    "should": "^13.2.3",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.2"
+  }
+}

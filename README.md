@@ -9,7 +9,10 @@ Written with [Nan](https://github.com/nodejs/nan) so it works for any Node.js ve
 
 <p align="center">
   <img src="https://github.com/karliky/crazymem/workflows/CI/badge.svg" />
+  <a href="https://github.com/karliky"><img src="https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg" /></a>
+  <a href="https://github.com/karliky/Crazymem/issues"><img src="https://img.shields.io/github/issues/karliky/Crazymem.svg" /></a>
 </p>
+
 
 # Features
 - 💻 Written in C++ and TypeScript

@@ -38,11 +38,35 @@ describe('Crazymem - Integration tests', () => {
     Crazymem.should.be.a.Function();
   });
 
-  it('should return a Crazymem instance', () => {
+  it('should create a Crazymem instance', () => {
     const crazymem = Crazymem('explorer.exe');
     crazymem.should.be.instanceOf(CrazymemClass);
     crazymem.pid.should.be.a.Number();
     crazymem.pid.should.be.above(0);
+  });
+
+  it('should return process info and openProcess handler', () => {
+    const crazymem = Crazymem('explorer.exe');
+    const info = crazymem.GetProcessInfo();
+    info.name.should.be.a.String();
+    info.pid.should.be.a.Number();
+    info.pid.should.be.above(0);
+    info.handle.should.be.a.Number();
+    info.handle.should.be.above(0);
+  });
+
+  it('should check if process is running', () => {
+    const crazymem = Crazymem('explorer.exe');
+    const info = crazymem.IsProcessRunning();
+    info.should.be.eql(true);
+  });
+
+  it("should fail as process doesn't exists", () => {
+    try {
+      Crazymem('gmisland.exe');
+    } catch (error) {
+      error.message.should.be.eql('NO_PROCESS_FOUND');
+    }
   });
 
   it('should check that multiple instances work as expected', () => {

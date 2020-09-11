@@ -9,7 +9,8 @@
   "scripts": {
     "test": "npm run build && mocha -r ts-node/register test/lib.ts",
     "build": "npx tsc src/lib.ts --outDir build/ts",
-    "post-install": "node-gyp build"
+    "rebuild": "node-gyp build",
+    "post-install": "npm run rebuild"
   },
   "author": "",
   "license": "ISC",

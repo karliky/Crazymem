@@ -62,6 +62,7 @@ void GetProcessInfo(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
   obj->Set(context, Nan::New("name").ToLocalChecked(), Nan::New(mem_string_c_str(&process_ex.name)).ToLocalChecked());
   obj->Set(context, Nan::New("pid").ToLocalChecked(), Nan::New((double) process_ex.pid));
+  obj->Set(context, Nan::New("handle").ToLocalChecked(), Nan::New((double) reinterpret_cast<int64_t>(process_ex.handle)));
 
   info.GetReturnValue().Set(obj);
 }
@@ -121,6 +122,20 @@ void DeallocateMemory(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 	mem_int_t deallocated = mem_ex_deallocate(process_ex, (void *) address, byteLength);
 
   info.GetReturnValue().Set((bool) deallocated);
+}
+
+void IsProcessRunning(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+  v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+  
+  if (info.Length() != 1) {
+    Nan::ThrowTypeError("MISSING_FUNCTION_ARGUMENTS (pid)");
+    return;
+  }
+
+  DWORD pid_ex = info[0]->NumberValue(context).FromJust();
+  mem_process_t process_ex = mem_ex_get_process((DWORD) pid_ex);
+  auto isRunning = (bool) mem_ex_is_process_running(process_ex);
+  info.GetReturnValue().Set(isRunning);
 }
 
 void WriteMemory(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -204,6 +219,11 @@ void Init(v8::Local<v8::Object> exports) {
   obj->Set(context,
           Nan::New("getProcessName").ToLocalChecked(),
           Nan::New<v8::FunctionTemplate>(GetProcessName)
+                ->GetFunction(context)
+                .ToLocalChecked());
+  obj->Set(context,
+          Nan::New("isProcessRunning").ToLocalChecked(),
+          Nan::New<v8::FunctionTemplate>(IsProcessRunning)
                 ->GetFunction(context)
                 .ToLocalChecked());
   exports->Set(context, Nan::New("process").ToLocalChecked(), obj);

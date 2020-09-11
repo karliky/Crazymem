@@ -2,13 +2,13 @@
   "name": "libmem",
   "version": "1.0.0",
   "description": "Node.js bindings for libmem",
-  "main": "src/lib.js",
+  "main": "build/ts/lib.js",
   "directories": {
     "example": "example"
   },
   "scripts": {
     "test": "npm run build && mocha -r ts-node/register test/lib.ts",
-    "build": "npx tsc src/lib.ts",
+    "build": "npx tsc src/lib.ts --outDir build/ts",
     "post-install": "node-gyp build"
   },
   "author": "",

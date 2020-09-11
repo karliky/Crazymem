@@ -33,7 +33,7 @@ import { Crazymem } from '../src/lib';
 import { Crazymem as CrazymemClass } from '../src/crazymem';
 import 'should';
 
-describe('Hello function', () => {
+describe('Crazymem - Integration tests', () => {
   it('should return a Crazymem constructor', () => {
     Crazymem.should.be.a.Function();
   });

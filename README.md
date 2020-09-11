@@ -3,8 +3,6 @@
   <img src="resources/logo.png" alt="Crazymem">
   <br>
 </h1>
-
-# Crazymem
 Memory management library for Node.js (Windows/Linux).
 Written with [Nan](https://github.com/nodejs/nan) so it works for any Node.js version out of the box.
 

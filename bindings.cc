@@ -1,5 +1,4 @@
 #include <nan.h>
-#include <windows.h>
 #include <string.h>
 #include "libmem/libmem.h"
 

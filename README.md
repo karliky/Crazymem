@@ -7,6 +7,10 @@
 Memory management library for Node.js (Windows/Linux).
 Written with [Nan](https://github.com/nodejs/nan) so it works for any Node.js version out of the box.
 
+<p align="center">
+  <img src="https://github.com/karliky/crazymem/workflows/CI/badge.svg" />
+</p>
+
 # Features
 - 💻 Written in C++ and TypeScript
 - 🕹️ Easy to use and well tested

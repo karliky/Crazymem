@@ -48,7 +48,7 @@ The unlicense. Read 'LICENSE'.
 ✅ mem_ex_get_process_name
 ✅ mem_ex_get_process
 ✅ mem_ex_get_module
-mem_ex_is_process_running
+✅ mem_ex_is_process_running
 ✅ mem_ex_read
 ✅ mem_ex_write
 mem_ex_set

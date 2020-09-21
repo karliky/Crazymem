@@ -103,41 +103,30 @@
 #define MEM_STR_LEN(str) strlen(str)
 #endif
 
-#define MEM_THISCALL(obj, func, ...) obj.func(&obj, __VA_ARGS__)
+#define VA_ARGS(...) , ##__VA_ARGS__
+#define MEM_THISCALL(obj, func, ...) obj.func(&obj VA_ARGS(__VA_ARGS__))
 
 //Assembly
 
-#define _MEM_JMP        0xE9
-#define _MEM_JMP_RAX    0xFF, 0xE0
-#define _MEM_JMP_EAX    0xFF, 0xE0
-#define _MEM_CALL       0xE8
-#define _MEM_CALL_EAX   0xFF, 0xD0
-#define _MEM_CALL_RAX   0xFF, 0xD0
-#define _MEM_MOVABS_RAX 0x48, 0xB8
-#define _MEM_MOV_EAX    0xB8
-#define _MEM_PUSH       0x68
-#define _MEM_PUSH_RAX   0x50
-#define _MEM_PUSH_EAX   0x50
-#define _MEM_RET        0xC3
 #define _MEM_BYTE       0x0
 #define _MEM_WORD       0x0, 0x0
 #define _MEM_DWORD      0x0, 0x0, 0x0, 0x0
 #define _MEM_QWORD      0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
 
 #if defined(MEM_86)
-#define _MEM_DETOUR_METHOD0    _MEM_MOV_EAX, _MEM_DWORD, _MEM_JMP_EAX
-#define _MEM_DETOUR_METHOD1    _MEM_JMP, _MEM_DWORD
-#define _MEM_DETOUR_METHOD2    _MEM_MOV_EAX, _MEM_DWORD, _MEM_PUSH_EAX, _MEM_RET
-#define _MEM_DETOUR_METHOD3    _MEM_PUSH, _MEM_DWORD, _MEM_RET
-#define _MEM_DETOUR_METHOD4    _MEM_MOV_EAX, _MEM_DWORD, _MEM_CALL_EAX
-#define _MEM_DETOUR_METHOD5    _MEM_CALL, _MEM_DWORD
+#define _MEM_DETOUR_METHOD0    0xB8, _MEM_DWORD, 0xFF, 0xE0
+#define _MEM_DETOUR_METHOD1    0xE9, _MEM_DWORD
+#define _MEM_DETOUR_METHOD2    0xB8, _MEM_DWORD, 0x50, 0xC3
+#define _MEM_DETOUR_METHOD3    0x68, _MEM_DWORD, 0xC3
+#define _MEM_DETOUR_METHOD4    0xB8, _MEM_DWORD, 0xFF, 0xD0
+#define _MEM_DETOUR_METHOD5    0xE8, _MEM_DWORD
 #elif defined(MEM_64)
-#define _MEM_DETOUR_METHOD0    _MEM_MOVABS_RAX, _MEM_QWORD, _MEM_JMP_RAX
-#define _MEM_DETOUR_METHOD1    _MEM_JMP, _MEM_DWORD
-#define _MEM_DETOUR_METHOD2    _MEM_MOVABS_RAX, _MEM_QWORD, _MEM_PUSH_RAX, _MEM_RET
-#define _MEM_DETOUR_METHOD3    _MEM_PUSH, _MEM_DWORD, _MEM_RET
-#define _MEM_DETOUR_METHOD4    _MEM_MOVABS_RAX, _MEM_QWORD, _MEM_CALL_RAX
-#define _MEM_DETOUR_METHOD5    _MEM_CALL, _MEM_DWORD
+#define _MEM_DETOUR_METHOD0    0x48, 0xB8, _MEM_QWORD, 0xFF, 0xE0
+#define _MEM_DETOUR_METHOD1    0xE9, _MEM_DWORD
+#define _MEM_DETOUR_METHOD2    0x48, 0xB8, _MEM_QWORD, 0x50, 0xC3
+#define _MEM_DETOUR_METHOD3    0x68, _MEM_DWORD, 0xC3
+#define _MEM_DETOUR_METHOD4    0x48, 0xB8, _MEM_QWORD, 0xFF, 0xD0
+#define _MEM_DETOUR_METHOD5    0xE8, _MEM_DWORD
 #endif
 
 #define MEM_DETOUR_INT_METHOD0 0
@@ -150,6 +139,8 @@
 //Other
 #if defined(__cplusplus)
 #define MEM_CPP
+#else
+#define MEM_C
 #endif
 #define MEM_BAD_RETURN         -1
 #define MEM_RETURN             !MEM_BAD_RETURN
@@ -309,6 +300,7 @@ mem_bool_t            mem_string_compare (struct _mem_string_t* p_string, struct
 struct _mem_string_t* mem_string_to_lower(struct _mem_string_t* p_string);
 struct _mem_string_t* mem_string_to_upper(struct _mem_string_t* p_string);
 struct _mem_string_t  mem_string_substr  (struct _mem_string_t* p_string, mem_size_t start, mem_size_t end);
+mem_void_t            mem_string_free    (struct _mem_string_t* p_string);
 
 //mem_process_t
 
@@ -328,6 +320,34 @@ typedef struct _mem_process_t
 struct _mem_process_t mem_process_init();
 mem_bool_t            mem_process_is_valid(struct _mem_process_t* p_process);
 mem_bool_t            mem_process_compare(struct _mem_process_t* p_process, struct _mem_process_t process);
+mem_void_t            mem_process_free(struct _mem_process_t* p_process);
+
+//mem_process_list_t
+
+typedef struct _mem_process_list_t
+{
+    mem_size_t     _length;
+    mem_process_t* _buffer;
+    mem_bool_t     is_initialized;
+
+    mem_process_t (* at)      (struct _mem_process_list_t* p_process_list, mem_size_t pos);
+    mem_bool_t    (* is_valid)(struct _mem_process_list_t* p_process_list);
+    mem_size_t    (* length)  (struct _mem_process_list_t* p_process_list);
+    mem_process_t*(* buffer)  (struct _mem_process_list_t* p_process_list);
+    mem_size_t    (* size)    (struct _mem_process_list_t* p_process_list);
+    mem_void_t    (* resize)  (struct _mem_process_list_t* p_process_list, mem_size_t size);
+    mem_void_t    (* append)  (struct _mem_process_list_t* p_process_list, mem_process_t process);
+}mem_process_list_t;
+
+mem_process_list_t    mem_process_list_init();
+mem_process_t         mem_process_list_at      (struct _mem_process_list_t* p_process_list, mem_size_t pos);
+mem_bool_t            mem_process_list_is_valid(struct _mem_process_list_t* p_process_list);
+mem_size_t            mem_process_list_length  (struct _mem_process_list_t* p_process_list);
+mem_process_t*        mem_process_list_buffer  (struct _mem_process_list_t* p_process_list);
+mem_size_t            mem_process_list_size    (struct _mem_process_list_t* p_process_list);
+mem_void_t            mem_process_list_resize  (struct _mem_process_list_t* p_process_list, mem_size_t size);
+mem_void_t            mem_process_list_append  (struct _mem_process_list_t* p_process_list, mem_process_t process);
+
 
 //mem_module_t
 
@@ -347,6 +367,33 @@ typedef struct _mem_module_t
 struct _mem_module_t mem_module_init();
 mem_bool_t           mem_module_is_valid(struct _mem_module_t* p_mod);
 mem_bool_t           mem_module_compare(struct _mem_module_t* p_mod, struct _mem_module_t mod);
+mem_void_t           mem_module_free(struct _mem_module_t* p_mod);
+
+//mem_module_list_t
+
+typedef struct _mem_module_list_t
+{
+    mem_size_t    _length;
+    mem_module_t* _buffer;
+    mem_bool_t    is_initialized;
+
+    mem_module_t  (* at)      (struct _mem_module_list_t* p_module_list, mem_size_t pos);
+    mem_bool_t    (* is_valid)(struct _mem_module_list_t* p_module_list);
+    mem_size_t    (* length)  (struct _mem_module_list_t* p_module_list);
+    mem_module_t* (* buffer)  (struct _mem_module_list_t* p_module_list);
+    mem_size_t    (* size)    (struct _mem_module_list_t* p_module_list);
+    mem_void_t    (* resize)  (struct _mem_module_list_t* p_module_list, mem_size_t size);
+    mem_void_t    (* append)  (struct _mem_module_list_t* p_module_list, mem_module_t process);
+}mem_module_list_t;
+
+mem_module_list_t     mem_module_list_init();
+mem_module_t          mem_module_list_at      (struct _mem_module_list_t* p_module_list, mem_size_t pos);
+mem_bool_t            mem_module_list_is_valid(struct _mem_module_list_t* p_module_list);
+mem_size_t            mem_module_list_length  (struct _mem_module_list_t* p_module_list);
+mem_module_t*         mem_module_list_buffer  (struct _mem_module_list_t* p_module_list);
+mem_size_t            mem_module_list_size    (struct _mem_module_list_t* p_module_list);
+mem_void_t            mem_module_list_resize  (struct _mem_module_list_t* p_module_list, mem_size_t size);
+mem_void_t            mem_module_list_append  (struct _mem_module_list_t* p_module_list, mem_module_t mod);
 
 //mem_alloc_t
 
@@ -374,12 +421,12 @@ typedef struct _mem_lib_t
     mem_bool_t(* is_valid)(struct _mem_lib_t* p_lib);
 }mem_lib_t;
 
-struct _mem_lib_t mem_lib_init();
-mem_bool_t        mem_lib_is_valid(struct _mem_lib_t* p_lib);
+struct _mem_lib_t  mem_lib_init();
+mem_bool_t         mem_lib_is_valid(struct _mem_lib_t* p_lib);
 
-//mem_detour_int_t
+//mem_detour_t
 
-typedef enum _mem_detour_int_t
+typedef enum _mem_detour_t
 {
     MEM_DT_M0 = MEM_DETOUR_INT_METHOD0,
     MEM_DT_M1 = MEM_DETOUR_INT_METHOD1,
@@ -387,54 +434,57 @@ typedef enum _mem_detour_int_t
     MEM_DT_M3 = MEM_DETOUR_INT_METHOD3,
     MEM_DT_M4 = MEM_DETOUR_INT_METHOD4,
     MEM_DT_M5 = MEM_DETOUR_INT_METHOD5
-}mem_detour_int_t;
+}mem_detour_t;
 
 //libmem
 
-mem_string_t  mem_parse_mask(mem_string_t mask);
+mem_string_t       mem_parse_mask(mem_string_t mask);
 
 //ex
-mem_pid_t     mem_ex_get_pid(mem_string_t process_name);
-mem_string_t  mem_ex_get_process_name(mem_pid_t pid);
-mem_process_t mem_ex_get_process(mem_pid_t pid);
-mem_module_t  mem_ex_get_module(mem_process_t process, mem_string_t module_name);
-mem_bool_t    mem_ex_is_process_running(mem_process_t process);
-mem_int_t     mem_ex_read(mem_process_t process, mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size);
-mem_int_t     mem_ex_write(mem_process_t process, mem_voidptr_t src, mem_voidptr_t data, mem_size_t size);
-mem_int_t     mem_ex_set(mem_process_t process, mem_voidptr_t dst, mem_byte_t byte, mem_size_t size);
-mem_int_t     mem_ex_protect(mem_process_t process, mem_voidptr_t src, mem_size_t size, mem_prot_t protection);
-mem_voidptr_t mem_ex_allocate(mem_process_t process, mem_size_t size, mem_prot_t protection);
-mem_int_t     mem_ex_deallocate(mem_process_t process, mem_voidptr_t src, mem_size_t size);
-mem_voidptr_t mem_ex_scan(mem_process_t process, mem_bytearray_t data, mem_voidptr_t base, mem_voidptr_t end, mem_size_t size);
-mem_voidptr_t mem_ex_pattern_scan(mem_process_t process, mem_bytearray_t pattern, mem_string_t mask, mem_voidptr_t base, mem_voidptr_t end);
-mem_int_t     mem_ex_detour(mem_process_t process, mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size, mem_detour_int_t method, mem_bytearray_t* stolen_bytes);
-mem_voidptr_t mem_ex_detour_trampoline(mem_process_t process, mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size, mem_detour_int_t method, mem_bytearray_t* stolen_bytes);
-mem_void_t    mem_ex_detour_restore(mem_process_t process, mem_voidptr_t src, mem_bytearray_t stolen_bytes, mem_size_t size);
-mem_int_t     mem_ex_load_library(mem_process_t process, mem_lib_t lib);
-mem_voidptr_t mem_ex_get_symbol(mem_module_t mod, const char* symbol);
+mem_pid_t          mem_ex_get_pid(mem_string_t process_name);
+mem_string_t       mem_ex_get_process_name(mem_pid_t pid);
+mem_process_t      mem_ex_get_process(mem_pid_t pid);
+mem_process_list_t mem_ex_get_process_list();
+mem_module_t       mem_ex_get_module(mem_process_t process, mem_string_t module_name);
+mem_module_list_t  mem_ex_get_module_list(mem_process_t process);
+mem_bool_t         mem_ex_is_process_running(mem_process_t process);
+mem_int_t          mem_ex_read(mem_process_t process, mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size);
+mem_int_t          mem_ex_write(mem_process_t process, mem_voidptr_t src, mem_voidptr_t data, mem_size_t size);
+mem_int_t          mem_ex_set(mem_process_t process, mem_voidptr_t dst, mem_byte_t byte, mem_size_t size);
+mem_int_t          mem_ex_protect(mem_process_t process, mem_voidptr_t src, mem_size_t size, mem_prot_t protection);
+mem_voidptr_t      mem_ex_allocate(mem_process_t process, mem_size_t size, mem_prot_t protection);
+mem_int_t          mem_ex_deallocate(mem_process_t process, mem_voidptr_t src, mem_size_t size);
+mem_voidptr_t      mem_ex_scan(mem_process_t process, mem_bytearray_t data, mem_voidptr_t base, mem_voidptr_t end, mem_size_t size);
+mem_voidptr_t      mem_ex_pattern_scan(mem_process_t process, mem_bytearray_t pattern, mem_string_t mask, mem_voidptr_t base, mem_voidptr_t end);
+mem_int_t          mem_ex_detour(mem_process_t process, mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size, mem_detour_t method, mem_bytearray_t* stolen_bytes);
+mem_voidptr_t      mem_ex_detour_trampoline(mem_process_t process, mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size, mem_detour_t method, mem_bytearray_t* stolen_bytes);
+mem_void_t         mem_ex_detour_restore(mem_process_t process, mem_voidptr_t src, mem_bytearray_t stolen_bytes, mem_size_t size);
+mem_int_t          mem_ex_load_library(mem_process_t process, mem_lib_t lib);
+mem_voidptr_t      mem_ex_get_symbol(mem_module_t mod, const char* symbol);
 
 //in
 
-mem_pid_t     mem_in_get_pid();
-mem_process_t mem_in_get_process();
-mem_string_t  mem_in_get_process_name();
-mem_module_t  mem_in_get_module(mem_string_t module_name);
-mem_voidptr_t mem_in_pattern_scan(mem_bytearray_t pattern, mem_string_t mask, mem_voidptr_t base, mem_size_t size);
-mem_void_t    mem_in_read(mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size);
-mem_void_t    mem_in_write(mem_voidptr_t dst, mem_voidptr_t src, mem_size_t size);
-mem_void_t    mem_in_set(mem_voidptr_t src, mem_byte_t byte, mem_size_t size);
-mem_int_t     mem_in_protect(mem_voidptr_t src, mem_size_t size, mem_prot_t protection);
-mem_voidptr_t mem_in_allocate(mem_size_t size, mem_prot_t protection);
-mem_void_t    mem_in_deallocate(mem_voidptr_t src, mem_size_t size);
-mem_bool_t    mem_in_compare(mem_voidptr_t pdata1, mem_voidptr_t pdata2, mem_size_t size);
-mem_voidptr_t mem_in_scan(mem_voidptr_t data, mem_voidptr_t base, mem_voidptr_t end, mem_size_t size);
-mem_size_t    mem_in_detour_length(mem_detour_int_t method);
-mem_int_t     mem_in_detour(mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size, mem_detour_int_t method, mem_bytearray_t* stolen_bytes);
-mem_voidptr_t mem_in_detour_trampoline(mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size, mem_detour_int_t method, mem_bytearray_t* stolen_bytes);
-mem_void_t    mem_in_detour_restore(mem_voidptr_t src, mem_bytearray_t stolen_bytes, mem_size_t size);
-mem_module_t  mem_in_load_library(mem_lib_t lib);
-mem_void_t    mem_in_unload_library(mem_module_t mod);
-mem_voidptr_t mem_in_get_symbol(mem_module_t mod, const char* symbol);
+mem_pid_t         mem_in_get_pid();
+mem_process_t     mem_in_get_process();
+mem_string_t      mem_in_get_process_name();
+mem_module_t      mem_in_get_module(mem_string_t module_name);
+mem_module_list_t mem_in_get_module_list();
+mem_voidptr_t     mem_in_pattern_scan(mem_bytearray_t pattern, mem_string_t mask, mem_voidptr_t base, mem_voidptr_t end);
+mem_void_t        mem_in_read(mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size);
+mem_void_t        mem_in_write(mem_voidptr_t dst, mem_voidptr_t src, mem_size_t size);
+mem_void_t        mem_in_set(mem_voidptr_t src, mem_byte_t byte, mem_size_t size);
+mem_int_t         mem_in_protect(mem_voidptr_t src, mem_size_t size, mem_prot_t protection);
+mem_voidptr_t     mem_in_allocate(mem_size_t size, mem_prot_t protection);
+mem_void_t        mem_in_deallocate(mem_voidptr_t src, mem_size_t size);
+mem_bool_t        mem_in_compare(mem_voidptr_t pdata1, mem_voidptr_t pdata2, mem_size_t size);
+mem_voidptr_t     mem_in_scan(mem_voidptr_t data, mem_voidptr_t base, mem_voidptr_t end, mem_size_t size);
+mem_size_t        mem_in_detour_length(mem_detour_t method);
+mem_int_t         mem_in_detour(mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size, mem_detour_t method, mem_bytearray_t* stolen_bytes);
+mem_voidptr_t     mem_in_detour_trampoline(mem_voidptr_t src, mem_voidptr_t dst, mem_size_t size, mem_detour_t method, mem_bytearray_t* stolen_bytes);
+mem_void_t        mem_in_detour_restore(mem_voidptr_t src, mem_bytearray_t stolen_bytes, mem_size_t size);
+mem_module_t      mem_in_load_library(mem_lib_t lib);
+mem_void_t        mem_in_unload_library(mem_module_t mod);
+mem_voidptr_t     mem_in_get_symbol(mem_module_t mod, const char* symbol);
 
 #ifdef MEM_CPP
 }

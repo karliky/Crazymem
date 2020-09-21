@@ -80,4 +80,11 @@ describe('Crazymem - Integration tests', () => {
     subcrazymem.pid.should.be.a.Number();
     subcrazymem.pid.should.be.above(0);
   });
+
+  it('should get the process list', () => {
+    const crazymem = Crazymem('explorer.exe');
+    const list = crazymem.GetProcessList();
+    list[0].name.length.should.be.above(0);
+    list[0].modules.length.should.be.above(0);
+  });
 });

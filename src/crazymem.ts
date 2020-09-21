@@ -15,4 +15,8 @@ export class Crazymem {
     IsProcessRunning() {
         return crazy.isProcessRunning(this.pid);
     }
+
+    GetProcessList() {
+        return crazy.getProcessList();
+    }
 }

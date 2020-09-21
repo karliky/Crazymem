@@ -60,8 +60,10 @@ mem_ex_pattern_scan
 mem_ex_detour
 mem_ex_detour_trampoline
 mem_ex_detour_restore
-mem_ex_load_library
+✅ mem_ex_load_library
 mem_ex_get_symbol
+✅ mem_ex_get_process_list
+✅ mem_ex_get_module_list
 ```
 
 # Thanks to

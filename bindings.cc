@@ -80,7 +80,6 @@ void GetProcessModule(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
   mem_process_t process_ex = mem_ex_get_process((DWORD) pid_ex);
 	mem_module_t process_mod_ex = mem_ex_get_module(process_ex, mem_string_new(process_name.c_str()));
-
   v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
   obj->Set(context, Nan::New("name").ToLocalChecked(), Nan::New(mem_string_c_str(&process_mod_ex.name)).ToLocalChecked());
@@ -90,6 +89,54 @@ void GetProcessModule(const Nan::FunctionCallbackInfo<v8::Value>& info) {
   obj->Set(context, Nan::New("end").ToLocalChecked(), Nan::New((double) reinterpret_cast<intptr_t>(process_mod_ex.end)));
 
   info.GetReturnValue().Set(obj);
+}
+
+/**
+ * TODO: Support linux mode
+ * TODO: Add test
+*/
+void LoadLibrary(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+  v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+  
+  if (info.Length() != 2) {
+    Nan::ThrowTypeError("INVALID_PARAMETERS");
+    return;
+  }
+
+  DWORD pid_ex = info[0]->NumberValue(context).FromJust();
+  mem_process_t process_ex = mem_ex_get_process((DWORD) pid_ex);
+  std::string lib_path = *Nan::Utf8String(info[1]);
+  mem_lib_t lib = mem_lib_init();
+  lib.path = mem_string_new(lib_path.c_str());
+  mem_int_t load_library = mem_ex_load_library(process_ex, lib);
+  info.GetReturnValue().Set(Nan::New((double) load_library));
+}
+
+void GetProcessList(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+  v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+
+  v8::Local<v8::Array> process_list = Nan::New<v8::Array>();
+
+  mem_process_list_t proc_list = mem_ex_get_process_list();
+  for(mem_size_t i = 0; i < MEM_THISCALL(proc_list, length); i++)
+  {
+      mem_process_t process = MEM_THISCALL(proc_list, at, i);
+      mem_module_list_t  mod_list  = mem_ex_get_module_list(process);
+
+      v8::Local<v8::Array> modules = Nan::New<v8::Array>();
+      v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+      for(mem_size_t j = 0; j < MEM_THISCALL(mod_list, length); j++)
+      {
+          mem_module_t mod = MEM_THISCALL(mod_list, at, j);
+          modules->Set(j, Nan::New(mem_string_c_str(&mod.name)).ToLocalChecked());
+      }
+
+      obj->Set(context, Nan::New("name").ToLocalChecked(), Nan::New(mem_string_c_str(&process.name)).ToLocalChecked());
+      obj->Set(context, Nan::New("modules").ToLocalChecked(), modules);
+      process_list->Set(i, obj);
+  }
+
+  info.GetReturnValue().Set(process_list);
 }
 
 void AllocateMemory(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -226,6 +273,17 @@ void Init(v8::Local<v8::Object> exports) {
           Nan::New<v8::FunctionTemplate>(IsProcessRunning)
                 ->GetFunction(context)
                 .ToLocalChecked());
+  obj->Set(context,
+        Nan::New("loadLibrary").ToLocalChecked(),
+        Nan::New<v8::FunctionTemplate>(LoadLibrary)
+              ->GetFunction(context)
+              .ToLocalChecked());
+  obj->Set(context,
+        Nan::New("getProcessList").ToLocalChecked(),
+        Nan::New<v8::FunctionTemplate>(GetProcessList)
+              ->GetFunction(context)
+              .ToLocalChecked());
+
   exports->Set(context, Nan::New("process").ToLocalChecked(), obj);
 }
 

@@ -10,7 +10,7 @@
     "test": "npm run build && mocha -r ts-node/register test/lib.ts",
     "build": "npx tsc ./src/lib.ts --outDir build/ts",
     "rebuild": "node-gyp build",
-    "install": "npm run build && npm run post-install",
+    "install": "npm run build && node-gyp build",
     "post-install": "npm run rebuild"
   },
   "author": "",

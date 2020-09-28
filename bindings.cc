@@ -128,12 +128,12 @@ void GetProcessList(const Nan::FunctionCallbackInfo<v8::Value>& info) {
       for(mem_size_t j = 0; j < MEM_THISCALL(mod_list, length); j++)
       {
           mem_module_t mod = MEM_THISCALL(mod_list, at, j);
-          modules->Set(j, Nan::New(mem_string_c_str(&mod.name)).ToLocalChecked());
+          modules->Set(context, j, Nan::New(mem_string_c_str(&mod.name)).ToLocalChecked());
       }
 
       obj->Set(context, Nan::New("name").ToLocalChecked(), Nan::New(mem_string_c_str(&process.name)).ToLocalChecked());
       obj->Set(context, Nan::New("modules").ToLocalChecked(), modules);
-      process_list->Set(i, obj);
+      process_list->Set(context, i, obj);
   }
 
   info.GetReturnValue().Set(process_list);
@@ -287,4 +287,8 @@ void Init(v8::Local<v8::Object> exports) {
   exports->Set(context, Nan::New("process").ToLocalChecked(), obj);
 }
 
+#if NODE_MAJOR_VERSION >= 10
+NAN_MODULE_WORKER_ENABLED(hello, Init)
+#else
 NODE_MODULE(hello, Init)
+#endif

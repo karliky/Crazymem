@@ -2,13 +2,13 @@
   "name": "crazymem",
   "version": "1.0.0",
   "description": "Node.js bindings for crazymem",
-  "main": "build/ts/lib.js",
+  "main": "output/lib.js",
   "directories": {
     "example": "example"
   },
   "scripts": {
     "test": "npm run build && mocha -r ts-node/register test/lib.ts",
-    "build": "npx tsc ./src/lib.ts --outDir build/ts",
+    "build": "npx tsc ./src/lib.ts --outDir ./output",
     "rebuild": "node-gyp build",
     "install": "npm run build && node-gyp build",
     "post-install": "npm run rebuild"

@@ -1,4 +1,4 @@
-const { process: crazy } = require("../Release/binding.node");
+const { process: crazy } = require("../build/Release/binding.node");
 import { PID, ProcessName } from './types';
 
 export class Crazymem {

@@ -219,7 +219,7 @@ void ReadMemory(const Nan::FunctionCallbackInfo<v8::Value>& info) {
   auto process_ex = (mem_process_t) mem_ex_get_process(pid_ex);
   char* output_buffer = new char[byteLength];
 	mem_ex_read(process_ex, (void *) address, output_buffer, byteLength);
-  Nan::MaybeLocal<v8::Object> output = Nan::NewBuffer(output_buffer, byteLength);
+  Nan::MaybeLocal<v8::Object> output = Nan::CopyBuffer(output_buffer, byteLength);
   delete[] output_buffer;
   info.GetReturnValue().Set(output.ToLocalChecked());
 }
@@ -231,24 +231,15 @@ void PatternScan(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     Nan::ThrowTypeError("MISSING_FUNCTION_ARGUMENTS (pid, pattern, mask)");
     return;
   }
-
 	auto pid_ex = (DWORD64) info[0]->NumberValue(context).FromJust();
   auto process_ex = (mem_process_t) mem_ex_get_process(pid_ex);
-  auto buffer = Nan::To<v8::Object>(info[1]).ToLocalChecked();
-  std::string mask_definition = *Nan::Utf8String(info[1]);
-
-	// auto pattern = node::Buffer::Data(buffer);
-	// mem_string_t mask = mem_string_new(mask_definition.c_str());
-	// mem_voidptr_t scan = mem_ex_pattern_scan(process_ex, pattern, mask, (mem_voidptr_t)((mem_uintptr_t) 0), (mem_voidptr_t)((mem_uintptr_t) 0x00007fffffffffff));
-
-	//-- Pattern Scanning
-	mem_int8_t pattern[] = { (mem_int8_t)0x10, (mem_int8_t)0x20, (mem_int8_t)0x0, (mem_int8_t)0x30, (mem_int8_t)0x40, (mem_int8_t)0x50,(mem_int8_t)0x60, (mem_int8_t)0x70, (mem_int8_t)0x80, (mem_int8_t)0x90, (mem_int8_t)0xA0, (mem_int8_t)0x00, (mem_int8_t)0xB0 };
+	mem_byte_t pattern[] = { (mem_byte_t)0x10, (mem_byte_t)0x20, (mem_byte_t)0x0, (mem_byte_t)0x30, (mem_byte_t)0x40, (mem_byte_t)0x50,(mem_byte_t)0x60, (mem_byte_t)0x70, (mem_byte_t)0x80, (mem_byte_t)0x90, (mem_byte_t)0xA0, (mem_byte_t)0x00, (mem_byte_t)0xB0 };
 	mem_string_t mask = mem_string_new(MEM_STR("xx?xxxxxxxx?x"));
-	mem_voidptr_t scan = mem_ex_pattern_scan(process_ex, pattern, mask, (mem_voidptr_t)((mem_uintptr_t) 0), (mem_voidptr_t)((mem_uintptr_t) 0x00007fffffffffff));
+	mem_voidptr_t scan = mem_ex_pattern_scan(process_ex, pattern, mask, (mem_voidptr_t)((mem_uintptr_t) pattern - 0x10), (mem_voidptr_t)((mem_uintptr_t) pattern + 0x10));
 	tprint("Pattern Scan:       %p", scan);
-	tprint(" (expected result): %p", (mem_voidptr_t)pattern);
+	tprint(" (expected result): %p", (mem_voidptr_t) pattern);
 
-  info.GetReturnValue().Set((double) reinterpret_cast<int64_t>(scan));
+ info.GetReturnValue().Set((double) reinterpret_cast<int64_t>(scan));
 }
 
 void Init(v8::Local<v8::Object> exports) {

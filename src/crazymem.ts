@@ -1,11 +1,27 @@
 const { process: crazy } = require("../build/Release/binding.node");
-import { PID, ProcessName } from './types';
+import { PID, PROCESS_NAME, ADDRESS, PROCESS_PATH, PTR_LENGTH } from './types';
 
 export class Crazymem {
     pid: PID;
-    
-    constructor(process_name: ProcessName) {
+    base: ADDRESS;
+    end: ADDRESS;
+    size: ADDRESS;
+    path: PROCESS_PATH;
+    name: PROCESS_NAME;
+    constructor(process_name: PROCESS_NAME) {
         this.pid = crazy.findByProcessName(process_name);
+        const { 
+            base,
+            end,
+            name,
+            path,
+            size
+        } = crazy.getModule(this.pid, process_name);
+        this.base = base;
+        this.end = end;
+        this.name = name;
+        this.path = path;
+        this.size = size;
     }
 
     GetProcessInfo() {
@@ -16,17 +32,28 @@ export class Crazymem {
         return crazy.isProcessRunning(this.pid);
     }
 
+    GetModule(moduleName: string) {
+        return crazy.getModule(this.pid, moduleName);
+    }
+
     Write(address, buffer) {
         return crazy.writeMemory(this.pid, address, buffer);
     }
 
-    Read(address, buffer) {
-        return crazy.readMemory(this.pid, address, buffer);
+    Read(address, size) {
+        return crazy.readMemory(this.pid, address, size);
     }
 
-    PatternScan() {
-        const pattern = Buffer.from([0x10, 0x20, 0x0]);
-        const mask = 'xx?';
+    getOffset(addresses) {
+        let address = addresses[0];
+        for (let i = 1; i < addresses.length; i++) {
+            address = this.Read(address, PTR_LENGTH).readUInt32LE(0);
+            address += addresses[i];
+        }
+        return address;
+    }
+
+    PatternScan(pattern: Buffer, mask: string) {
         return crazy.patternScan(this.pid, pattern, mask);
     }
 

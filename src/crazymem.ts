@@ -60,4 +60,8 @@ export class Crazymem {
     GetProcessList() {
         return crazy.getProcessList();
     }
+
+    CheckKeyIsPressed(key_code: number) {
+        return crazy.getKeyState(key_code);
+    }
 }

@@ -1,5 +1,6 @@
 #include <nan.h>
 #include <string.h>
+#include <winuser.h>
 #include "libmem/libmem.h"
 
 #if defined(MEM_UCS)    //Unicode character set
@@ -185,6 +186,22 @@ void IsProcessRunning(const Nan::FunctionCallbackInfo<v8::Value>& info) {
   info.GetReturnValue().Set(isRunning);
 }
 
+void GetKeyState(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+  v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+  
+  if (info.Length() != 1) {
+    Nan::ThrowTypeError("MISSING_FUNCTION_ARGUMENTS (virtual_key_code)");
+    return;
+  }
+
+  int32_t virtual_key_code = info[0]->NumberValue(context).FromJust();
+  if (GetKeyState(virtual_key_code) < 0) {
+    return info.GetReturnValue().Set((bool) true);
+  } else {
+    return info.GetReturnValue().Set((bool) false);
+  }
+}
+
 void WriteMemory(const Nan::FunctionCallbackInfo<v8::Value>& info) {
   v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
   
@@ -306,6 +323,11 @@ void Init(v8::Local<v8::Object> exports) {
         Nan::New<v8::FunctionTemplate>(PatternScan)
               ->GetFunction(context)
               .ToLocalChecked());
+  obj->Set(context,
+      Nan::New("getKeyState").ToLocalChecked(),
+      Nan::New<v8::FunctionTemplate>(GetKeyState)
+            ->GetFunction(context)
+            .ToLocalChecked());
 
   exports->Set(context, Nan::New("process").ToLocalChecked(), obj);
 }

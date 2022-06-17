@@ -104,3 +104,7 @@ dist
 .tern-port
 build
 output
+
+.vscode
+
+*.exe

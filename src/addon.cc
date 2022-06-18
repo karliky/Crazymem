@@ -237,9 +237,15 @@ static napi_value addon_LM_LoadModuleEx(const Napi::CallbackInfo &info)
 {
     auto env = info.Env();
     lm_module_t  load_lib;
-
     lm_process_t proc;
-    const char *procstr = info[0].ToString().Utf8Value().c_str();
+
+    Napi::Object obj = info[0].As<Napi::Object>();
+    auto pid = obj.Get("pid").ToNumber().DoubleValue();
+    proc.pid = pid;
+    auto handle = (uint64_t)obj.Get("handle").ToNumber().DoubleValue();
+    proc.handle = (HANDLE)handle;
+
+    const char *procstr = info[1].ToString().Utf8Value().c_str();
 
     lm_bool_t result = LM_LoadModuleEx(proc, (lm_string_t) procstr, &load_lib);
 
@@ -423,9 +429,9 @@ static napi_value addon_LM_WriteMemoryEx(const Napi::CallbackInfo &info)
     auto handle = (uint64_t)obj.Get("handle").ToNumber().DoubleValue();
     proc.handle = (HANDLE)handle;
 
-    auto src = info[1].As<Napi::Number>().Int64Value();
+    auto address = info[1].As<Napi::Number>().Int64Value();
     Napi::Buffer<unsigned char> buffer = Napi::Buffer<unsigned char>(env, info[2]);
-    lm_size_t result = LM_WriteMemoryEx(proc, (void*) src, (lm_bstring_t) buffer.Data(), buffer.Length());
+    lm_size_t result = LM_WriteMemoryEx(proc, (void*) address, (lm_bstring_t) buffer.Data(), buffer.Length());
     
     napi_value rtn;
     napi_create_double(env, (uint64_t)result, &rtn);
@@ -458,7 +464,7 @@ static napi_value addon_LM_ProtMemoryEx(const Napi::CallbackInfo &info)
 {
     auto env = info.Env();
     lm_process_t proc;
-
+    // TODO: Not implemented
     //lm_bool_t result = LM_ProtMemoryEx(&proc, , LM_ARRLEN(procpath), , );
 
     return Napi::String::New(env, "Not implemented yet");

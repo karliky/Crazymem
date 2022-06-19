@@ -11,7 +11,7 @@
     "build": "tsc ./src/lib.ts --outDir ./output",
     "rebuild": "node-gyp build",
     "install": "npm run build && node-gyp configure && node-gyp build",
-    "preinstall": "git submodule add git@github.com:rdbo/libmem.git ./libmem && git reset --hard a584c65"
+    "preinstall": "git submodule add --force https://github.com/rdbo/libmem libmem"
   },
   "author": "",
   "license": "ISC",

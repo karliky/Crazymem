@@ -49,6 +49,8 @@
         "xmemory0": "cpp",
         "xstddef": "cpp",
         "xtr1common": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "libmem.h": "c",
+        "stdio.h": "c"
     }
 }

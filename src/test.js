@@ -1,5 +1,5 @@
 const CM = require('../build/Release/addon.node');
-const pid = CM.LM_GetProcessIdEx("target.exe");
+const pid = CM.LM_GetProcessIdEx("WoW.exe");
 const process = CM.LM_OpenProcessEx(pid);
 console.log('# process', process);
 console.log('# .LM_GetProcessPathEx RESULT ->', CM.LM_GetProcessPathEx(process));

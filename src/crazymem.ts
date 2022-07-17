@@ -30,8 +30,12 @@ export class Crazymem {
     name: PROCESS_NAME;
     process: PROCESS;
     constructor(process_name: PROCESS_NAME) {
+        console.log('# process_name', process_name);
         this.pid = this.LM_GetProcessIdEx(process_name);
+        if (this.pid === 0xFFFFFFFF) throw new Error('CANNOT_GET_PROCESS')
+        console.log('# pid', this.pid);
         this.process = this.LM_OpenProcessEx(this.pid);
+        console.log('# process', this.process);
         this.path = this.LM_GetProcessPathEx(this.process);
         const module = this.LM_GetModuleEx(this.process, this.path);
         this.base = module.base;

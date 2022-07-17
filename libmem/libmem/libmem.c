@@ -7,6 +7,61 @@
 
 #include "libmem.h"
 
+#include <windows.h>
+#include <stdio.h>
+#include <accctrl.h>
+#include <aclapi.h>
+
+
+BOOL SetPrivilege(
+    HANDLE hToken,          // access token handle
+    LPCTSTR lpszPrivilege,  // name of privilege to enable/disable
+    BOOL bEnablePrivilege   // to enable or disable privilege
+    ) 
+{
+    TOKEN_PRIVILEGES tp;
+    LUID luid;
+
+    if ( !LookupPrivilegeValue( 
+            NULL,            // lookup privilege on local system
+            lpszPrivilege,   // privilege to lookup 
+            &luid ) )        // receives LUID of privilege
+    {
+        printf("LookupPrivilegeValue error: %u\n", GetLastError() ); 
+        return FALSE; 
+    }
+
+    tp.PrivilegeCount = 1;
+    tp.Privileges[0].Luid = luid;
+    if (bEnablePrivilege)
+        tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    else
+        tp.Privileges[0].Attributes = 0;
+
+    // Enable the privilege or disable all privileges.
+
+    if ( !AdjustTokenPrivileges(
+           hToken, 
+           FALSE, 
+           &tp, 
+           sizeof(TOKEN_PRIVILEGES), 
+           (PTOKEN_PRIVILEGES) NULL, 
+           (PDWORD) NULL) )
+    { 
+          printf("AdjustTokenPrivileges error: %u\n", GetLastError() ); 
+          return FALSE; 
+    } 
+
+    if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
+
+    {
+          printf("The token does not have the specified privilege. \n");
+          return FALSE;
+    } 
+
+    return TRUE;
+}
+
 #if LM_COMPATIBLE
 /* Additional Types */
 typedef struct {
@@ -849,6 +904,12 @@ _LM_GetProcessIdCallback(lm_pid_t   pid,
 
 	if (!path)
 		return LM_FALSE;
+
+	// TODO: Move to a better location and also use only on windows
+	HANDLE hToken;
+	OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken);
+	SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
+	CloseHandle(hToken);
 
 	if (LM_OpenProcessEx(pid, &proc)) {
 		lm_size_t len;

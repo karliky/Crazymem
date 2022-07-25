@@ -3,6 +3,21 @@
 #include <stdint.h>
 #include "../libmem/libmem/libmem.h"
 #include <iostream>
+#include <windows.h>
+
+static napi_value addon_GetPidByWindowName(const Napi::CallbackInfo &info)
+{
+    auto env = info.Env();
+
+    auto processArg = std::string(info[0].ToString().Utf8Value().c_str());
+    const char *procstr = processArg.c_str();
+    HWND hWnd = FindWindow(0, procstr);
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hWnd, &pid);
+    napi_value rtn;
+    napi_create_double(env, (double) pid, &rtn);
+    return rtn;
+}
 
 static napi_value addon_LM_GetProcessIdEx(const Napi::CallbackInfo &info)
 {
@@ -688,6 +703,8 @@ static napi_value addon_LM_DestroyTrampolineEx(const Napi::CallbackInfo &info)
 
 Napi::Object Init(Napi::Env env, Napi::Object exports)
 {
+    
+    exports.Set(Napi::String::New(env, "GetPidByWindowName"), Napi::Function::New(env, addon_GetPidByWindowName));
     exports.Set(Napi::String::New(env, "LM_GetProcessIdEx"), Napi::Function::New(env, addon_LM_GetProcessIdEx));
     exports.Set(Napi::String::New(env, "LM_GetParentIdEx"), Napi::Function::New(env, addon_LM_GetParentIdEx));
     exports.Set(Napi::String::New(env, "LM_OpenProcessEx"), Napi::Function::New(env, addon_LM_OpenProcessEx));

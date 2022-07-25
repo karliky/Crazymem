@@ -17,9 +17,7 @@
   "dependencies": {
     "@types/mocha": "^8.0.3",
     "nan": "^2.14.1",
-    "node-addon-api": "^5.0.0"
-  },
-  "devDependencies": {
+    "node-addon-api": "^5.0.0",
     "@types/node": "^14.18.21",
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",

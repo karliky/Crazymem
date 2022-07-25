@@ -12,55 +12,62 @@
 #include <accctrl.h>
 #include <aclapi.h>
 
-
-BOOL SetPrivilege(
-    HANDLE hToken,          // access token handle
-    LPCTSTR lpszPrivilege,  // name of privilege to enable/disable
-    BOOL bEnablePrivilege   // to enable or disable privilege
-    ) 
+BOOL SetPrivilege( HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege )
 {
-    TOKEN_PRIVILEGES tp;
-    LUID luid;
+	TOKEN_PRIVILEGES	tp;
+	LUID				luid;
+	TOKEN_PRIVILEGES	tpPrevious;
+	DWORD cbPrevious = sizeof(TOKEN_PRIVILEGES);
 
-    if ( !LookupPrivilegeValue( 
-            NULL,            // lookup privilege on local system
-            lpszPrivilege,   // privilege to lookup 
-            &luid ) )        // receives LUID of privilege
-    {
-        printf("LookupPrivilegeValue error: %u\n", GetLastError() ); 
-        return FALSE; 
-    }
+	if(!LookupPrivilegeValue( NULL, lpszPrivilege, &luid ))
+		return FALSE;
 
-    tp.PrivilegeCount = 1;
-    tp.Privileges[0].Luid = luid;
-    if (bEnablePrivilege)
-        tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-    else
-        tp.Privileges[0].Attributes = 0;
+	// 1) Get current privilege setting
+	tp.PrivilegeCount           = 1;
+	tp.Privileges[0].Luid       = luid;
+	tp.Privileges[0].Attributes = 0;
 
-    // Enable the privilege or disable all privileges.
+	AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), &tpPrevious, &cbPrevious);
+	if (GetLastError() != ERROR_SUCCESS)
+		return FALSE;
 
-    if ( !AdjustTokenPrivileges(
-           hToken, 
-           FALSE, 
-           &tp, 
-           sizeof(TOKEN_PRIVILEGES), 
-           (PTOKEN_PRIVILEGES) NULL, 
-           (PDWORD) NULL) )
-    { 
-          printf("AdjustTokenPrivileges error: %u\n", GetLastError() ); 
-          return FALSE; 
-    } 
+	// 2) Set privilege based on previous setting
+	tpPrevious.PrivilegeCount       = 1;
+	tpPrevious.Privileges[0].Luid   = luid;
+	if (bEnablePrivilege)
+		tpPrevious.Privileges[0].Attributes |= (SE_PRIVILEGE_ENABLED);
+	else
+		tpPrevious.Privileges[0].Attributes ^= (SE_PRIVILEGE_ENABLED & tpPrevious.Privileges[0].Attributes);
 
-    if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
+	AdjustTokenPrivileges( hToken, FALSE, &tpPrevious, cbPrevious, NULL, NULL );
+	if (GetLastError() != ERROR_SUCCESS)
+		return FALSE;
 
-    {
-          printf("The token does not have the specified privilege. \n");
-          return FALSE;
-    } 
-
-    return TRUE;
+	return TRUE;
 }
+
+BOOL SetDebugPrivilege()
+{
+	HANDLE hToken;
+	BOOL   bOK = FALSE;
+
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+	{
+		if (!SetPrivilege(hToken, SE_DEBUG_NAME, TRUE))
+		{
+			MessageBoxA(NULL, "Cannot set privilege", "Cannot set privilege", MB_OK);
+		}
+		else
+			bOK = TRUE;
+
+		CloseHandle(hToken);
+	}
+	else
+		MessageBoxA(NULL, "Cannot OpenProcessToken", "Cannot OpenProcessToken", MB_OK);
+
+	return bOK;
+}
+
 
 #if LM_COMPATIBLE
 /* Additional Types */
@@ -904,13 +911,7 @@ _LM_GetProcessIdCallback(lm_pid_t   pid,
 
 	if (!path)
 		return LM_FALSE;
-
-	// TODO: Move to a better location and also use only on windows
-	HANDLE hToken;
-	OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken);
-	SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
-	CloseHandle(hToken);
-
+	
 	if (LM_OpenProcessEx(pid, &proc)) {
 		lm_size_t len;
 
@@ -960,7 +961,9 @@ LM_GetProcessIdEx(lm_tstring_t procstr)
 	arg.procstr = procstr;
 	arg.len = LM_STRLEN(arg.procstr);
 
+	SetDebugPrivilege();
 	LM_EnumProcesses(_LM_GetProcessIdCallback, (lm_void_t *)&arg);
+
 	return arg.pid;
 }
 
@@ -3977,20 +3980,21 @@ LM_DataScanEx(lm_process_t proc,
 	      lm_address_t addr,
 	      lm_size_t    scansize)
 {
+	printf("First line\n");
 	lm_address_t match = (lm_address_t)LM_BAD;
 	lm_byte_t   *ptr;
 	lm_page_t    oldpage;
-
+	printf("_LM_ValidProcess\n");
 	if (!_LM_ValidProcess(proc) || !data || !size ||
 	    !scansize || addr == (lm_address_t)LM_BAD)
 		return match;
-	
+	printf("LM_GetPageEx\n");
 	if (!LM_GetPageEx(proc, addr, &oldpage))
 		return match;
-	
+	printf("LM_ProtMemoryEx\n");
 	LM_ProtMemoryEx(proc, oldpage.base, oldpage.size,
 			LM_PROT_XRW, (lm_prot_t *)LM_NULL);
-
+	printf("Looping for\n");
 	for (ptr = (lm_byte_t *)addr;
 	     ptr != &((lm_byte_t *)addr)[scansize];
 	     ptr = &ptr[1]) {

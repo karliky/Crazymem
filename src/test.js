@@ -1,6 +1,12 @@
 const CM = require('../build/Release/addon.node');
 const pid = CM.LM_GetProcessIdEx("WoW.exe");
 const process = CM.LM_OpenProcessEx(pid);
+const pattern = Buffer.from(' (build ');
+console.log('process, pattern, 8, process.base, process.end', process, pattern, 8, 0, 0xFFFFFFF)
+console.log('# .LM_DataScanEx RESULT ->', CM.LM_DataScanEx(process, pattern, 8, 0, 0xFFFFFFF));
+/* const CM = require('../build/Release/addon.node');
+const pid = CM.LM_GetProcessIdEx("WoW.exe");
+const process = CM.LM_OpenProcessEx(pid);
 console.log('# process', process);
 console.log('# .LM_GetProcessPathEx RESULT ->', CM.LM_GetProcessPathEx(process));
 console.log('# .LM_GetProcessNameEx RESULT ->', CM.LM_GetProcessNameEx(process));
@@ -46,3 +52,4 @@ console.log('# .LM_DataScanEx RESULT ->', CM.LM_DataScanEx(process, pattern, 4, 
 const mask = "xxxx";
 console.log('# .LM_PatternScanEx RESULT ->', CM.LM_PatternScanEx(process, pattern, mask, address - 20, 30), "compared to", address);
 
+ */

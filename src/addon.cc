@@ -7,8 +7,10 @@
 static napi_value addon_LM_GetProcessIdEx(const Napi::CallbackInfo &info)
 {
     auto env = info.Env();
-    const char *procstr = info[0].ToString().Utf8Value().c_str();
-    lm_pid_t result = LM_GetProcessIdEx((lm_tstring_t)procstr);
+    auto processArg = std::string(info[0].ToString().Utf8Value().c_str());
+    const char *procstr = processArg.c_str();
+
+    lm_pid_t result = LM_GetProcessIdEx((lm_tstring_t) procstr);
 
     napi_value rtn;
     napi_create_double(env, (double)result, &rtn);
@@ -519,14 +521,17 @@ static napi_value addon_LM_DataScanEx(const Napi::CallbackInfo &info)
     proc.pid = pid;
     auto handle = (uint64_t)obj.Get("handle").ToNumber().DoubleValue();
     proc.handle = (HANDLE)handle;
+    printf("Proc has been set\n");
 
-    auto data = Napi::Buffer<unsigned char>(env, info[1]);
+    auto data = info[1].As<Napi::Buffer<const unsigned char>>().Data();
+
     auto size = info[2].As<Napi::Number>().Int64Value();
     auto addr = info[3].As<Napi::Number>().Int64Value();
     auto scansize = info[4].As<Napi::Number>().Int64Value();
-
-    lm_address_t result = LM_DataScanEx(proc, (lm_bstring_t) data.Data(), size, (void*) addr, scansize);
-
+    printf("CALLING DATA FUNCTION \n");
+    std::cout << "Data value seed" << data << "\n" << std::endl;
+    lm_address_t result = LM_DataScanEx(proc, (lm_bstring_t) data, size, (void*) addr, scansize);
+    std::cout << "End value" << result << "\n" << std::endl;
     napi_value rtn;
     napi_create_double(env, (int64_t) result, &rtn);
     return rtn;

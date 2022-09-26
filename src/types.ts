@@ -1,3 +1,4 @@
+export type WINDOW_NAME = string;
 export type PROCESS_NAME = string;
 export type PROCESS_PATH = string;
 export type PID = number;

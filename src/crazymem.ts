@@ -18,7 +18,8 @@ import {
     MEMORY_PAGE,
     ENUM_MEMORY_PAGES_CALLBACK,
     BSIZE,
-    MASK
+    MASK,
+    WINDOW_NAME
 } from './types';
 
 export class Crazymem {
@@ -29,14 +30,10 @@ export class Crazymem {
     path: PROCESS_PATH;
     name: PROCESS_NAME;
     process: PROCESS;
-    constructor(process_name: PROCESS_NAME) {
-        console.log('# process_name', process_name);
-        this.pid = this.LM_GetProcessIdEx(process_name);
-        console.log('this.pid', this.pid);
-        if (this.pid === 0xFFFFFFFF) throw new Error('CANNOT_GET_PROCESS')
-        console.log('# pid', this.pid);
+    constructor(window_name: WINDOW_NAME) {
+        this.pid = this.GetPidByWindowName(window_name);
+        if (this.pid === 0xFFFFFFFF || this.pid === 0) throw new Error('CANNOT_GET_PROCESS')
         this.process = this.LM_OpenProcessEx(this.pid);
-        console.log('# process', this.process);
         this.path = this.LM_GetProcessPathEx();
         const module = this.LM_GetModuleEx(this.path);
         this.base = module.base;
@@ -45,6 +42,9 @@ export class Crazymem {
         this.name = this.LM_GetModuleNameEx(module);
     }
 
+    GetPidByWindowName(window_name: WINDOW_NAME): PID {
+        return Native.GetPidByWindowName(window_name);
+    }
     LM_GetProcessIdEx(procstr: PROCESS_NAME): PID {
         return Native.LM_GetProcessIdEx(procstr);
     }
@@ -118,7 +118,6 @@ export class Crazymem {
         return Native.LM_FreeMemoryEx(this.process, dst, size);
     }
     LM_DataScanEx(bytes: Buffer, size: BSIZE, addr: ADDRESS, scansize: BSIZE): ADDRESS {
-        console.log('this.process, bytes, size, addr, scansize', this.process, bytes, size, addr, scansize);
         return Native.LM_DataScanEx(this.process, bytes, size, addr, scansize);
     }
     LM_PatternScanEx(pattern: Buffer, mask: MASK, addr: ADDRESS, scansize: BSIZE): ADDRESS {

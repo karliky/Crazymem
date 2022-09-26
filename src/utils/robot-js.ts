@@ -1,7 +1,7 @@
 // This is a set of bindings for Robot-js API
 
 function initialize(cb) {
-    var Crazymem = require('../../').Crazymem("WoW.exe");
+    var Crazymem = require('../../').Crazymem("World of Warcraft");
     
     const process = {};
     const memory = {

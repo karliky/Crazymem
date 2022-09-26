@@ -1,7 +1,7 @@
 {
   "name": "crazymem",
   "version": "1.0.0",
-  "description": "Node.js bindings for crazymem",
+  "description": "Node.js bindings for Libmem",
   "main": "output/lib.js",
   "directories": {
     "example": "example"
@@ -10,7 +10,7 @@
     "test": "npm run build && mocha -r ts-node/register test/lib.ts",
     "build": "tsc ./src/lib.ts --outDir ./output",
     "rebuild": "node-gyp build",
-    "install": "npm run build && node-gyp configure && node-gyp build"
+    "install": "npm run build && node-gyp configure --release && node-gyp build --release"
   },
   "author": "",
   "license": "ISC",

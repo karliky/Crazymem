@@ -30,13 +30,7 @@ $ npm install --save crazymem
 
 Require:
 ```
-const lib = require("crazymem")
-const { process } = lib;
-
-const MODULE_NAME = "explorer.exe";
-const pid = process.findByName(MODULE_NAME);
-
-console.log('# pid', pid);
+const Crazymem = require("crazymem").Crazymem("WoW.exe");
 ```
 
 # License
@@ -44,26 +38,38 @@ The unlicense. Read 'LICENSE'.
 
 # Methods implemented
 ```
-✅ mem_ex_get_pid
-✅ mem_ex_get_process_name
-✅ mem_ex_get_process
-✅ mem_ex_get_module
-✅ mem_ex_is_process_running
-✅ mem_ex_read
-✅ mem_ex_write
-mem_ex_set
-mem_ex_protect
-✅ mem_ex_allocate
-✅ mem_ex_deallocate
-mem_ex_scan
-mem_ex_pattern_scan
-mem_ex_detour
-mem_ex_detour_trampoline
-mem_ex_detour_restore
-✅ mem_ex_load_library
-mem_ex_get_symbol
-✅ mem_ex_get_process_list
-✅ mem_ex_get_module_list
+✅ LM_GetProcessIdEx
+✅ LM_GetParentIdEx
+✅ LM_OpenProcessEx
+✅ LM_GetProcessPathEx
+✅ LM_GetProcessNameEx
+✅ LM_GetProcessBitsEx
+✅ LM_EnumThreadsEx
+✅ LM_GetThreadIdEx
+✅ LM_EnumModulesEx
+✅ LM_GetModuleEx
+✅ LM_GetModulePathEx
+✅ LM_GetModuleNameEx
+✅ LM_LoadModuleEx
+✅ LM_UnloadModuleEx
+✅ LM_EnumSymbolsEx
+✅ LM_GetSymbolEx
+✅ LM_EnumPagesEx
+✅ LM_GetPageEx
+✅ LM_ReadMemoryEx
+✅ LM_WriteMemoryEx
+✅ LM_SetMemoryEx
+✅ LM_ProtMemoryEx
+✅ LM_AllocMemoryEx
+✅ LM_FreeMemoryEx
+✅ LM_DataScanEx
+✅ LM_PatternScanEx
+✅ LM_SigScanEx
+✅ LM_SystemCallEx
+✅ LM_FunctionCallEx
+✅ LM_DetourCodeEx
+✅ LM_MakeTrampolineEx
+✅ LM_DestroyTrampolineEx
 ```
 
 # Thanks to

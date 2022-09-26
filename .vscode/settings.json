@@ -51,6 +51,7 @@
         "xtr1common": "cpp",
         "iostream": "cpp",
         "libmem.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "accctrl.h": "c"
     }
 }

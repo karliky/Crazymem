@@ -49,23 +49,24 @@ BOOL SetPrivilege( HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege )
 BOOL SetDebugPrivilege()
 {
 	HANDLE hToken;
-	BOOL   bOK = FALSE;
+	BOOL   result = FALSE;
 
 	if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
 	{
 		if (!SetPrivilege(hToken, SE_DEBUG_NAME, TRUE))
 		{
-			MessageBoxA(NULL, "Cannot set privilege", "Cannot set privilege", MB_OK);
+			result = FALSE;
 		}
 		else
-			bOK = TRUE;
+			result = TRUE;
 
 		CloseHandle(hToken);
 	}
-	else
-		MessageBoxA(NULL, "Cannot OpenProcessToken", "Cannot OpenProcessToken", MB_OK);
+	else {
+		result = FALSE;
+	}
 
-	return bOK;
+	return result;
 }
 
 
@@ -911,14 +912,13 @@ _LM_GetProcessIdCallback(lm_pid_t   pid,
 
 	if (!path)
 		return LM_FALSE;
-	
 	if (LM_OpenProcessEx(pid, &proc)) {
 		lm_size_t len;
 
 		len = LM_GetProcessPathEx(proc,	path, LM_PATH_MAX);
 		if (len && len >= parg->len) {
 			path[len] = LM_STR('\x00');
-
+			printf("Comparing %s - %s - %s\n", &path[len - parg->len], path, parg->procstr);
 			if (!LM_STRCMP(&path[len - parg->len], 
 				       parg->procstr)) {
 				parg->pid = pid;
@@ -963,7 +963,7 @@ LM_GetProcessIdEx(lm_tstring_t procstr)
 
 	SetDebugPrivilege();
 	LM_EnumProcesses(_LM_GetProcessIdCallback, (lm_void_t *)&arg);
-
+	printf("arg.pid %d\n", arg.pid);
 	return arg.pid;
 }
 
@@ -3980,21 +3980,21 @@ LM_DataScanEx(lm_process_t proc,
 	      lm_address_t addr,
 	      lm_size_t    scansize)
 {
-	printf("First line\n");
+
 	lm_address_t match = (lm_address_t)LM_BAD;
 	lm_byte_t   *ptr;
 	lm_page_t    oldpage;
-	printf("_LM_ValidProcess\n");
+
 	if (!_LM_ValidProcess(proc) || !data || !size ||
 	    !scansize || addr == (lm_address_t)LM_BAD)
 		return match;
-	printf("LM_GetPageEx\n");
+
 	if (!LM_GetPageEx(proc, addr, &oldpage))
 		return match;
-	printf("LM_ProtMemoryEx\n");
+
 	LM_ProtMemoryEx(proc, oldpage.base, oldpage.size,
 			LM_PROT_XRW, (lm_prot_t *)LM_NULL);
-	printf("Looping for\n");
+
 	for (ptr = (lm_byte_t *)addr;
 	     ptr != &((lm_byte_t *)addr)[scansize];
 	     ptr = &ptr[1]) {

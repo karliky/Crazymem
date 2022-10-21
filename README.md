@@ -30,8 +30,10 @@ $ npm install --save crazymem
 
 Require:
 ```
-const Crazymem = require("crazymem").Crazymem("WoW.exe");
+const Crazymem = require("crazymem").Crazymem("Window name");
 ```
+
+Refer to the library API to know how to use it (src/crazymem.ts).
 
 # License
 The unlicense. Read 'LICENSE'.

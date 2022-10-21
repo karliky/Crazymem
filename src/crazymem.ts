@@ -36,6 +36,7 @@ export class Crazymem {
         this.process = this.LM_OpenProcessEx(this.pid);
         this.path = this.LM_GetProcessPathEx();
         const module = this.LM_GetModuleEx(this.path);
+        if (!module.size) throw new Error('CANNOT_GET_PROCESS_SIZE')
         this.base = module.base;
         this.end = module.end;
         this.size = module.size;
